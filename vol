@@ -1,0 +1,29 @@
+#!/bin/sh
+
+# Requires https://github.com/cdemoulins/pamixer
+
+op=$1
+n=${2:-10}
+
+case $op in
+    +)
+        amixer -q set Master $n%+
+        ;;
+    -)
+        amixer -q set Master $n%-
+        ;;
+    s)
+        amixer -q set Master $n%
+        ;;
+    m)
+        amixer -q set Master toggle
+        ;;
+esac
+
+if [ "$(pamixer --get-mute)" == "true" ]; then
+    status="Muted"
+else
+    status="$(pamixer --get-volume)%"
+fi
+
+echo -e "Volume: $status" > $NOTIFYD_FIFO_PATH

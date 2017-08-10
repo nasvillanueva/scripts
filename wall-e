@@ -1,0 +1,7 @@
+#!/bin/sh
+
+. /home/jvillanueva/.zshenv
+WALL=$WALLPAPER_PATH
+GRAY_TINT='#c7c7c7'
+RED_TINT='#947575'
+hsetroot -screens 3 -fill $WALL -tint $GRAY_TINT &

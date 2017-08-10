@@ -1,0 +1,44 @@
+#!/bin/sh
+
+FIFO="/tmp/notifyd.fifo"
+COUNTER="/tmp/notifyd.cnt"
+
+# create fifo
+test -p $FIFO && rm $FIFO
+mkfifo $FIFO
+test -f "$COUNTER" && rm "$COUNTER"; echo "-1" > "$COUNTER"
+
+get_counter(){
+    cat "$COUNTER"
+}
+
+set_counter(){
+    echo "$1" > "$COUNTER"
+}
+
+monitor_width=`dattr w eDP1`
+monitor_height=`dattr h eDP1`
+padding=25
+notif_padding=15
+w=150
+h=20
+x=$(( monitor_width - w - padding))
+y=$(( monitor_height - h - padding ))
+
+echo "Started notification daemon"
+for s in $HOME/.bin/notifyd-*; do
+	pkill "$(basename $s)"
+	sleep 0.3
+    $s 2> /tmp/$(basename $s).log &
+done
+tail -f $FIFO | \
+while IFS= read -r message; do
+    set_counter "$(( $(get_counter) + 1 ))"
+
+    {
+        echo "$message" | $HOME/.bin/popup $w $h $x $(( y - ( $(get_counter) *  padding ))) $message
+
+        sleep 0.5
+        set_counter "$(( $(get_counter) - 1 ))"
+    } &
+done

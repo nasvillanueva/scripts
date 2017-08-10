@@ -1,0 +1,15 @@
+#!/bin/sh
+
+. $HOME/.zshenv
+
+trap 'pkill sind' EXIT
+
+# Init time
+sleep 2
+format='$$BEGINCOLOR$$%s$$ENDCOLOR$$ %b'
+sind -d -u 100 -t 1 -l 2 -f "$format" | while read -r line; do
+	test -n "$line" && echo "$(printf "%s" "$line" |\
+        sed -e 's/\$\$BEGINCOLOR\$\$//' \
+		-e 's/\$\$ENDCOLOR\$\$//' | tr -d '\n')" > "$NOTIFYD_FIFO_PATH"
+	sleep 0.3
+done

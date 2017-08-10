@@ -1,0 +1,9 @@
+#!/bin/sh
+
+TMPBG=/tmp/lock.png
+
+scrot -d 1 $TMPBG
+
+i3lock -i $TMPBG -I 5
+
+rm $TMPBG

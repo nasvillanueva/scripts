@@ -1,0 +1,26 @@
+#!/bin/sh
+
+# Requires https://github.com/dark-yux/bar for lemonbar patched with border
+
+. $HOME/.zshenv
+
+POPUP_DURATION=5
+
+W="$1"
+H="$2"
+X="$3"
+Y="$4"
+MESSAGE="$5"
+
+BG="$(xrq background)"
+FG="$(xrq foreground)"
+
+FONT="$NOTIFYD_FONT"
+ICON="$NOTIFYD_ICON_FONT"
+OFFSET="${NOTIFYD_OFFSET:--3}"
+BORDER_WIDTH="${NOTIFYD_BORDER:-5}"
+BORDER_COLOR=`xrq color4`
+
+
+skroll -r -n 35  | lemonbar -g "${W}x${H}+${X}+${Y}" -B "$BG" -F "$FG" -f "$FONT" -f "$ICON_FONT" -d -o $OFFSET -R $BORDER_COLOR -r $BORDER_WIDTH
+

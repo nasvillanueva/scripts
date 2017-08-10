@@ -1,0 +1,37 @@
+#!/bin/sh
+
+
+. $HOME/.zshenv
+# Options
+FG=`xrq foreground`
+BG=`xrq background`
+HEIGHT="20"
+BORDER_WIDTH="${NOTIFYD_BORDER:-5}"
+BORDER_COLOR=`xrq color4`
+
+
+IFS='-' read -r -a FONT <<< "$NOTIFYD_FONT"
+IFS='-' read -r -a ICON_FONT <<< "$NOTIFYD_ICON_FONT"
+
+
+clock() {
+    DATETIME=$(date "+%a %b %d, %I:%M %p")
+    echo -ne "" "$DATETIME"
+}
+battery() {
+    BATPERC=$(acpi --battery | cut -d, -f2)
+    echo -ne "" "$BATPERC"
+}
+
+STATUS="%{c}%{F$FG}%{B$BG} $(battery) | $(clock) %{F-}%{B-}"
+WIDTH=`txtw -f "${FONT[0]}" -s "${FONT[1]}" -F "${ICON_FONT[0]}" -S "${ICON_FONT[1]}" "$STATUS"`
+
+MONITOR_WIDTH=`dattr w eDP1`
+MONITOR_HEIGHT=`dattr h eDP1`
+X=$(((MONITOR_WIDTH / 2) - (WIDTH / 2)))
+Y=$((MONITOR_HEIGHT - HEIGHT - 25))
+
+(
+    echo -e "$STATUS"
+    sleep 5
+) | lemonbar -g "${WIDTH}x${HEIGHT}+${X}+${Y}" -f "$NOTIFYD_FONT" -f "$NOTIFYD_ICON_FONT" -B "$BG" -R $BORDER_COLOR -r $BORDER_WIDTH -d

@@ -1,0 +1,99 @@
+#!/usr/bin/env bash
+#
+# Use rofi/zenity to change system runstate thanks to systemd.
+#
+# Note: this currently relies on associative array support in the shell.
+#
+# Inspired from i3pystatus wiki:
+# https://github.com/enkore/i3pystatus/wiki/Shutdown-Menu
+#
+# Copyright 2015 Benjamin Chrétien <chretien at lirmm dot fr>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+#######################################################################
+#                            BEGIN CONFIG                             #
+#######################################################################
+
+# Options not related to colors
+ROFI_TEXT="Session:"
+
+#######################################################################
+#                             END CONFIG                              #
+#######################################################################
+
+# Whether to ask for user's confirmation
+enable_confirmation=true
+
+# Preferred launcher if both are available
+preferred_launcher="rofi"
+
+usage="$(basename "$0") [-h] [-c] [-p name] -- display a menu for shutdown, reboot, lock etc.
+
+where:
+    -h  show this help text
+    -c  ask for user confirmation
+    -p  preferred launcher (rofi or zenity)
+
+This script depends on:
+  - systemd,
+  - i3,
+  - rofi or zenity."
+
+# Check whether the user-defined launcher is valid
+
+# menu defined as an associative array
+typeset -A menu
+
+# Menu with keys/commands
+menu=(
+  [Shutdown]="poweroff"
+  [Reboot]="reboot"
+  [Hibernate]="systemctl hibernate"
+  [Suspend]="systemctl suspend"
+  [Lock]="$HOME/.bin/lock"
+  [Logout]="killall xinit"
+  [Cancel]=""
+)
+menu_nrows=${#menu[@]}
+
+# Menu entries that may trigger a confirmation message
+menu_confirm="Shutdown Reboot Hibernate Suspend Logout"
+
+launcher_options="-dmenu -i -lines ${menu_nrows} -p ${ROFI_TEXT} \
+      ${rofi_colors} ${ROFI_OPTIONS}"
+
+
+launcher="rofi ${launcher_options}"
+selection="$(printf '%s\n' "${!menu[@]}" | sort | ${launcher})"
+
+function ask_confirmation() {
+  confirmed=$(echo -e "Yes\nNo" | rofi -dmenu -i -lines 2 -p "${selection}?")
+  [ "${confirmed}" == "Yes" ] && confirmed=0
+
+  if [ "${confirmed}" == 0 ]; then
+    ${menu[${selection}]}
+  fi
+}
+
+if [[ $? -eq 0 && ! -z ${selection} ]]; then
+  if [[ "${enable_confirmation}" = true && \
+        ${menu_confirm} =~ (^|[[:space:]])"${selection}"($|[[:space:]]) ]]; then
+    ask_confirmation
+  else
+    ${menu[${selection}]}
+  fi
+fi
+
+
