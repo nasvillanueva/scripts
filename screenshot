@@ -1,7 +1,17 @@
 #!/bin/bash
 
+flags=""
+
+while getopts ":s" opt; do
+    case $opt in
+        s)
+            flags="$flags -s"
+            ;;
+    esac
+done
+
 timestamp="$(date +%Y%m%d%H%M%S)"
 targetbase="$HOME/Pictures/screenshots"
 mkdir -p $targetbase
 [ -d $targetbase ] || exit 1
-scrot $targetbase/$timestamp.png
+scrot $flags $targetbase/$timestamp.png
